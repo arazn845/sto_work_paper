@@ -18,6 +18,7 @@ H = H
 J = J
 Ω = Ω
 
+flexibility = flexibility
 
 p = [1/Ω for ω in 1:Ω]
 
@@ -109,6 +110,8 @@ mp = Model(Gurobi.Optimizer)
 c1 = @constraint(mp, [h in 1:H , j in 1:J], χ[h,j] ≤ ψ[h])
 c2 = @constraint(mp, [h in 1:H , j in 1:J], s[h,j] + ψ[h] ≤ χ[h,j] + 1);
 
+# extra constraints
+c5 = @constraint(m, [h in 1:H], sum(χ[h,j] for j in 1:J) ≤ flexibility )
 
 #######################################################################################
 # sub problem function
