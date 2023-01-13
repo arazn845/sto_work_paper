@@ -2,39 +2,28 @@ using Gurobi
 using JuMP
 using CSV, DataFrames
 using Distributions, Random
-Random.seed!(1234)
+
 ##########################################
 # parameters
 ##########################################
 
-s = [1 0 0;
-     0 1 0;
-     0 0 1;
-     1 0 0]
+s = Matrix(CSV.read("s.csv", DataFrame))
+zᵖ = Matrix(CSV.read("z_p.csv", DataFrame) )
+zᶜ = Matrix(CSV.read("z_c.csv", DataFrame) )
+zᵐ = Matrix(CSV.read("z_m.csv", DataFrame) )
+D = Matrix(CSV.read("D.csv", DataFrame) )
 
-zᵖ = [50000 50000 60000 50000]
+R = R
+H = H
+J = J
+Ω = Ω
 
-zᶜ = [90000 110000 90000 90000]
-
-zᵐ = [0     12000 12000;
-      12000 0     12000;
-      12000 12000 0    ;
-      0     12000 12000;]
-
-R = 100
-H = 4
-J = 3
-T = 20
-Ω = 100
-
-D = fill(0.0,J,T,Ω)
-
-for ω in 1:Ω
-    D[:,:,ω] = [round.(rand.(Uniform(0,2) ) , digits=1)  for j in 1:J, t in 1:T]
-end
-D
 
 p = [1/Ω for ω in 1:Ω]
+
+################################################################
+# index_generator
+################################################################
 
 function index_generator(χᵏ)
     Hᵏ = [ [] for j in 1:J ] # for 1
@@ -122,7 +111,7 @@ c2 = @constraint(mp, [h in 1:H , j in 1:J], s[h,j] + ψ[h] ≤ χ[h,j] + 1);
 
 
 #######################################################################################
-# sub problem
+# sub problem function
 #######################################################################################
 function solve_sub_prob(χʳ)
     sp =[ Model(Gurobi.Optimizer) for t in 1:T, ω in 1:Ω]
@@ -146,7 +135,7 @@ function solve_sub_prob(χʳ)
 end
 
 #######################################################################################
-# initiate
+# initiating Benders cut
 #######################################################################################
 
 function initiate()
